@@ -10,7 +10,7 @@
     ],
     "require": {
         "drupal/core": "^9.4 || ^10",
-        "ordermind/drupal--tengstrom-configuration": "dev-master"
+        "drupal/tengstrom_configuration": "dev-master"
     }
 }
 
