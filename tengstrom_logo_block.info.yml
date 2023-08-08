@@ -1,0 +1,8 @@
+name: Tengström Logo Block
+type: module
+package: Tengström Profile
+core_version_requirement: ^9 || ^10
+dependencies:
+  - tengstrom_config_logo:tengstrom_config_logo
+
+version: 0.1.0

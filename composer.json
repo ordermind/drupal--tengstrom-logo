@@ -1,0 +1,16 @@
+{
+    "name": "drupal/tengstrom_logo_block",
+    "type": "drupal-module--tengstrom",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:ordermind/drupal--tengstrom-configuration.git",
+            "no-api": true
+        }
+    ],
+    "require": {
+        "drupal/core": "^9.4 || ^10",
+        "ordermind/drupal--tengstrom-configuration": "dev-master"
+    }
+}
+
