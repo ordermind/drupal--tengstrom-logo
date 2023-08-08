@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tengstrom_logo_block\Plugin\Block;
+namespace Drupal\tengstrom_logo\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides a Logo Block.
  *
  * @Block(
- *   id = "tengstrom_logo_block",
+ *   id = "tengstrom_logo",
  *   admin_label = @Translation("Logo Block"),
  * )
  */
