@@ -1,4 +1,4 @@
-name: Tengström Logo Block
+name: Tengström Logo
 type: module
 package: Tengström Profile
 core_version_requirement: ^9 || ^10

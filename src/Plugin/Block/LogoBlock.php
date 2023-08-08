@@ -3,13 +3,12 @@
 namespace Drupal\tengstrom_logo\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
-use Drupal\file\FileInterface;
 use Drupal\image\ImageStyleInterface;
+use Drupal\tengstrom_config_logo\LogoFileLoader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -21,23 +20,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
-  private ConfigFactoryInterface $configFactory;
   private EntityStorageInterface $imageStyleStorage;
-  private EntityStorageInterface $fileStorage;
+  private LogoFileLoader $logoFileLoader;
 
   public function __construct(
     array $configuration,
     string $plugin_id,
     $plugin_definition,
-    ConfigFactoryInterface $configFactory,
     EntityStorageInterface $imageStyleStorage,
-    EntityStorageInterface $fileStorage
+    LogoFileLoader $logoFileLoader
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->configFactory = $configFactory;
     $this->imageStyleStorage = $imageStyleStorage;
-    $this->fileStorage = $fileStorage;
+    $this->logoFileLoader = $logoFileLoader;
   }
 
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -47,9 +43,8 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('config.factory'),
       $entityTypeManager->getStorage('image_style'),
-      $entityTypeManager->getStorage('file')
+      $container->get('tengstrom_config_logo.file_loader')
     );
   }
 
@@ -117,7 +112,7 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
   }
 
   private function renderOriginalImage(): array {
-    $logoFile = $this->loadLogoFile();
+    $logoFile = $this->logoFileLoader->loadLogo();
     if (!$logoFile) {
       return [];
     }
@@ -129,7 +124,7 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
   }
 
   private function renderStyledImage(string $imageStyleName): array {
-    $logoFile = $this->loadLogoFile();
+    $logoFile = $this->logoFileLoader->loadLogo();
     if (!$logoFile) {
       return [];
     }
@@ -139,22 +134,6 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
       '#uri' => $logoFile->getFileUri(),
       '#style_name' => $imageStyleName,
     ];
-  }
-
-  private function loadLogoFile(): ?FileInterface {
-    $generalConfig = $this->configFactory->get('dcsve_configuration.settings');
-
-    $logoUuid = $generalConfig->get('logo_uuid');
-    if (!$logoUuid) {
-      return NULL;
-    }
-
-    $logoFile = $this->fileStorage->loadByProperties(['uuid' => $generalConfig->get('logo_uuid')]);
-    if (!$logoFile) {
-      return NULL;
-    }
-
-    return reset($logoFile);
   }
 
 }
