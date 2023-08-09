@@ -5,4 +5,3 @@ services:
       - '@entity_type.manager'
       - '@tengstrom_config_logo.file_loader'
       - '@extension.path.resolver'
-      - '@stream_wrapper.public'

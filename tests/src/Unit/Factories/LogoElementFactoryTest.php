@@ -1,0 +1,136 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\Tests\tengstrom_logo\Unit\Factories;
+
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ExtensionPathResolver;
+use Drupal\Core\Url;
+use Drupal\file\FileInterface;
+use Drupal\tengstrom_config_logo\LogoFileLoader;
+use Drupal\tengstrom_logo\Factories\LogoElementFactory;
+use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+
+class LogoElementFactoryTest extends UnitTestCase {
+  use ProphecyTrait;
+
+  /**
+   * @dataProvider provideCreateCases
+   */
+  public function testCreate(
+    array $expectedResult,
+    bool $hasUploadedLogo,
+    ?string $imageStyle,
+    ?string $linkPath
+  ): void {
+    $mockImageStyleStorage = $this->prophesize(EntityStorageInterface::class);
+    $imageStyleStorage = $mockImageStyleStorage->reveal();
+
+    $mockEntityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
+    $mockEntityTypeManager->getStorage('image_style')->willReturn($imageStyleStorage);
+    $entityTypeManager = $mockEntityTypeManager->reveal();
+
+    $mockLogoFileLoader = $this->prophesize(LogoFileLoader::class);
+    if ($hasUploadedLogo) {
+      $mockLogo = $this->prophesize(FileInterface::class);
+      $mockLogo->getFileUri()->willReturn('public://uploaded_file.png');
+      $logo = $mockLogo->reveal();
+      $mockLogoFileLoader->loadLogo()->willReturn($logo);
+    }
+    else {
+      $mockLogoFileLoader->loadLogo()->willReturn(NULL);
+    }
+    $logoFileLoader = $mockLogoFileLoader->reveal();
+
+    $mockExtensionPathResolver = $this->prophesize(ExtensionPathResolver::class);
+    $mockExtensionPathResolver->getPath('module', 'tengstrom_logo')->willReturn('modules/tengstrom/tengstrom_logo');
+    $extensionPathResolver = $mockExtensionPathResolver->reveal();
+
+    $factory = new LogoElementFactory($entityTypeManager, $logoFileLoader, $extensionPathResolver);
+    $result = $factory->create($imageStyle, $linkPath);
+    $this->assertEquals($expectedResult, $result);
+  }
+
+  public function provideCreateCases(): array {
+    return [
+      // Fallback image without image style and link.
+      [
+        [
+          '#theme' => 'image',
+          '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
+        ], FALSE, NULL, NULL,
+      ],
+      // Fallback image without image style but with a link.
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image',
+            '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], FALSE, NULL, '<front>',
+      ],
+      // Fallback image with image style but without link (image style should not be used)
+      [
+        [
+          '#theme' => 'image',
+          '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
+        ], FALSE, 'valid_style', NULL,
+      ],
+      // Fallback image with image style and with link (image style should not be used)
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image',
+            '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], FALSE, 'valid_style', '<front>',
+      ],
+      // Uploaded image without image style and link.
+      [
+        [
+          '#theme' => 'image',
+          '#uri' => 'public://uploaded_file.png',
+        ], TRUE, NULL, NULL,
+      ],
+      // Uploaded image without image style but with a link.
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image',
+            '#uri' => 'public://uploaded_file.png',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], TRUE, NULL, '<front>',
+      ],
+      // Uploaded image with image style but without link.
+      [
+        [
+          '#theme' => 'image_style',
+          '#uri' => 'public://uploaded_file.png',
+          '#style_name' => 'valid_style',
+        ], TRUE, 'valid_style', NULL,
+      ],
+      // Uploaded image with image style and with a link.
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image_style',
+            '#uri' => 'public://uploaded_file.png',
+            '#style_name' => 'valid_style',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], TRUE, 'valid_style', '<front>',
+      ],
+    ];
+  }
+
+}
