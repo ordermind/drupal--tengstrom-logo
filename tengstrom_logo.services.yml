@@ -1,0 +1,8 @@
+services:
+  tengstrom_logo.logo_element_factory:
+    class: Drupal\tengstrom_logo\Factories\LogoElementFactory
+    arguments:
+      - '@entity_type.manager'
+      - '@tengstrom_config_logo.file_loader'
+      - '@extension.path.resolver'
+      - '@stream_wrapper.public'
