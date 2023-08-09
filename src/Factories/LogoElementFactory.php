@@ -26,8 +26,12 @@ class LogoElementFactory {
     $this->extensionPathResolver = $extensionPathResolver;
   }
 
-  public function create(?string $imageStyle, ?string $linkPath): array {
-    $logoUri = $this->getLogoFileUri();
+  public function create(?string $imageStyle, ?string $linkPath, bool $allowFallback): array {
+    $logoUri = $this->getLogoFileUri($allowFallback);
+    if (!$logoUri) {
+      return [];
+    }
+
     $imageElement = $this->createImageElement($imageStyle, $logoUri);
 
     if (empty($linkPath)) {
@@ -68,11 +72,15 @@ class LogoElementFactory {
     ];
   }
 
-  protected function getLogoFileUri(): string {
+  protected function getLogoFileUri(bool $allowFallback): ?string {
     $logoFile = $this->logoFileLoader->loadLogo();
 
     if ($logoFile instanceof FileInterface) {
       return $logoFile->getFileUri();
+    }
+
+    if (!$allowFallback) {
+      return NULL;
     }
 
     return '/' . $this->extensionPathResolver->getPath('module', 'tengstrom_logo') . '/images/fallback-logo.png';

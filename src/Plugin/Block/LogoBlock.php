@@ -53,7 +53,7 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
   public function build() {
     $config = $this->getConfiguration();
 
-    return $this->logoElementFactory->create($config['image_style'], $config['link_path']);
+    return $this->logoElementFactory->create($config['image_style'], $config['link_path'], (bool) $config['enable_fallback']);
   }
 
   /**
@@ -86,6 +86,12 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
       '#default_value' => $config['link_path'] ?? '',
     ];
 
+    $form['enable_fallback'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Use fallback image if no logo has been uploaded'),
+      '#default_value' => $config['enable_fallback'] ?? TRUE,
+    ];
+
     return $form;
   }
 
@@ -98,6 +104,7 @@ class LogoBlock extends BlockBase implements ContainerFactoryPluginInterface {
     $values = $form_state->getValues();
     $this->configuration['image_style'] = $values['image_style'];
     $this->configuration['link_path'] = $values['link_path'];
+    $this->configuration['enable_fallback'] = $values['enable_fallback'];
   }
 
 }

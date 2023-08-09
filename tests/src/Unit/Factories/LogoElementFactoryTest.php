@@ -23,6 +23,7 @@ class LogoElementFactoryTest extends UnitTestCase {
   public function testCreate(
     array $expectedResult,
     bool $hasUploadedLogo,
+    bool $allowFallback,
     ?string $imageStyle,
     ?string $linkPath
   ): void {
@@ -50,18 +51,30 @@ class LogoElementFactoryTest extends UnitTestCase {
     $extensionPathResolver = $mockExtensionPathResolver->reveal();
 
     $factory = new LogoElementFactory($entityTypeManager, $logoFileLoader, $extensionPathResolver);
-    $result = $factory->create($imageStyle, $linkPath);
+    $result = $factory->create($imageStyle, $linkPath, $allowFallback);
     $this->assertEquals($expectedResult, $result);
   }
 
   public function provideCreateCases(): array {
     return [
+      [
+        [], FALSE, FALSE, NULL, NULL,
+      ],
+      [
+        [], FALSE, FALSE, NULL, '<front>',
+      ],
+      [
+        [], FALSE, FALSE, 'valid_style', NULL,
+      ],
+      [
+        [], FALSE, FALSE, 'valid_style', '<front>',
+      ],
       // Fallback image without image style and link.
       [
         [
           '#theme' => 'image',
           '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
-        ], FALSE, NULL, NULL,
+        ], FALSE, TRUE, NULL, NULL,
       ],
       // Fallback image without image style but with a link.
       [
@@ -72,14 +85,14 @@ class LogoElementFactoryTest extends UnitTestCase {
             '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
           ],
           '#url' => Url::fromRoute('<front>'),
-        ], FALSE, NULL, '<front>',
+        ], FALSE, TRUE, NULL, '<front>',
       ],
       // Fallback image with image style but without link (image style should not be used)
       [
         [
           '#theme' => 'image',
           '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
-        ], FALSE, 'valid_style', NULL,
+        ], FALSE, TRUE, 'valid_style', NULL,
       ],
       // Fallback image with image style and with link (image style should not be used)
       [
@@ -90,16 +103,16 @@ class LogoElementFactoryTest extends UnitTestCase {
             '#uri' => '/modules/tengstrom/tengstrom_logo/images/fallback-logo.png',
           ],
           '#url' => Url::fromRoute('<front>'),
-        ], FALSE, 'valid_style', '<front>',
+        ], FALSE, TRUE, 'valid_style', '<front>',
       ],
-      // Uploaded image without image style and link.
+      // Uploaded image without image style and link. (No fallback allowed)
       [
         [
           '#theme' => 'image',
           '#uri' => 'public://uploaded_file.png',
-        ], TRUE, NULL, NULL,
+        ], TRUE, FALSE, NULL, NULL,
       ],
-      // Uploaded image without image style but with a link.
+      // Uploaded image without image style but with a link. (No fallback allowed)
       [
         [
           '#type' => 'link',
@@ -108,17 +121,17 @@ class LogoElementFactoryTest extends UnitTestCase {
             '#uri' => 'public://uploaded_file.png',
           ],
           '#url' => Url::fromRoute('<front>'),
-        ], TRUE, NULL, '<front>',
+        ], TRUE, FALSE, NULL, '<front>',
       ],
-      // Uploaded image with image style but without link.
+      // Uploaded image with image style but without link. (No fallback allowed)
       [
         [
           '#theme' => 'image_style',
           '#uri' => 'public://uploaded_file.png',
           '#style_name' => 'valid_style',
-        ], TRUE, 'valid_style', NULL,
+        ], TRUE, FALSE, 'valid_style', NULL,
       ],
-      // Uploaded image with image style and with a link.
+      // Uploaded image with image style and with a link. (No fallback allowed)
       [
         [
           '#type' => 'link',
@@ -128,7 +141,45 @@ class LogoElementFactoryTest extends UnitTestCase {
             '#style_name' => 'valid_style',
           ],
           '#url' => Url::fromRoute('<front>'),
-        ], TRUE, 'valid_style', '<front>',
+        ], TRUE, FALSE, 'valid_style', '<front>',
+      ],
+      // Uploaded image without image style and link. (Fallback allowed)
+      [
+        [
+          '#theme' => 'image',
+          '#uri' => 'public://uploaded_file.png',
+        ], TRUE, TRUE, NULL, NULL,
+      ],
+      // Uploaded image without image style but with a link. (Fallback allowed)
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image',
+            '#uri' => 'public://uploaded_file.png',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], TRUE, TRUE, NULL, '<front>',
+      ],
+      // Uploaded image with image style but without link. (Fallback allowed)
+      [
+        [
+          '#theme' => 'image_style',
+          '#uri' => 'public://uploaded_file.png',
+          '#style_name' => 'valid_style',
+        ], TRUE, TRUE, 'valid_style', NULL,
+      ],
+      // Uploaded image with image style and with a link. (Fallback allowed)
+      [
+        [
+          '#type' => 'link',
+          '#title' => [
+            '#theme' => 'image_style',
+            '#uri' => 'public://uploaded_file.png',
+            '#style_name' => 'valid_style',
+          ],
+          '#url' => Url::fromRoute('<front>'),
+        ], TRUE, TRUE, 'valid_style', '<front>',
       ],
     ];
   }
