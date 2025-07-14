@@ -55,7 +55,7 @@ class LogoElementFactoryTest extends UnitTestCase {
     $this->assertEquals($expectedResult, $result);
   }
 
-  public function provideCreateCases(): array {
+  public static function provideCreateCases(): array {
     return [
       [
         [], FALSE, FALSE, NULL, NULL,

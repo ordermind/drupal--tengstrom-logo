@@ -1,7 +1,7 @@
 name: Tengström Logo
 type: module
 package: Tengström Profile
-core_version_requirement: ^9 || ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - tengstrom_config_logo:tengstrom_config_logo
 

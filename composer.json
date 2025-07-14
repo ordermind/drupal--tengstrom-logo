@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "drupal/core": "^9.4 || ^10",
+        "drupal/core": "^10 || ^11",
         "drupal/tengstrom_configuration": "dev-master"
     }
 }
